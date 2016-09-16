@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Title</title>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.0/pixi.min.js"></script>
+<script src="pixi-audio.js"></script>
+<script>
+
+    PIXI.loader.add([
+        {name:"AwesomeMusic", url:"cardssounds/cardFan1.wav"},{name:"placecard",url:"cardssounds/cardPlace1.wav"}, {name:"chipstack", url:"cardssounds/chipsStack6.wav"}
+    ]).load(function(){
+        var awesomeMusic = PIXI.audioManager.getAudio('AwesomeMusic');
+        awesomeMusic.play();
+    });
+
+
+    // You can use either `new PIXI.WebGLRenderer`, `new PIXI.CanvasRenderer`, or `PIXI.autoDetectRenderer`
+    // which will try to choose the best renderer for the environment you are in.
+    var renderer = new PIXI.WebGLRenderer(window.innerWidth-10, window.innerHeight-15);
+
+    // The renderer will create a canvas element for you that you can then insert into the DOM.
+    document.body.appendChild(renderer.view);
+
+
+    window.WebFontConfig = {
+        google: {
+            families: ['Snippet', 'Arvo:700italic', 'Podkova:700']
+        },
+
+        active: function() {
+            // do something
+            init();
+        }
+    };
+
+    (function() {
+        var wf = document.createElement('script');
+        wf.src = ('https:' === document.location.protocol ? 'https' : 'http') +
+                '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+        wf.type = 'text/javascript';
+        wf.async = 'true';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(wf, s);
+    })();
+
+
+    var dealmoney = new PIXI.Text('$0', { font: 'Snippet', fill: 'white', align: 'left' });
+    dealmoney.position.set(20);
+
+
+
+    var stage = new PIXI.Container();
+
+    stage.addChild(dealmoney);
+
+
+
+
+    var startgamebtn = null;
+
+
+
+
+    var placebetstext  = PIXI.Sprite.fromImage('cardspics/placebets.png');
+    placebetstext.position.set(600,230);
+    stage.addChild(placebetstext);
+
+
+    var coinone = PIXI.Sprite.fromImage('cardspics/pokerchip.png');
+    coinone.position.set(200,550);
+    coinone.interactive = true;
+    coinone.on('mousedown', raiseMoneyHun);
+    coinone.on('touchstart', raiseMoneyHun);
+    stage.addChild(coinone);
+
+
+    var cointwo = PIXI.Sprite.fromImage('cardspics/pokerchip1.png');
+    cointwo.position.set(100,550);
+    cointwo.scale.x = 0.2;
+    cointwo.scale.y = 0.2;
+    cointwo.interactive = true;
+    cointwo.on('mousedown', raiseMoneyFif);
+    cointwo.on('touchstart', raiseMoneyFif);
+    stage.addChild(cointwo);
+
+    var first = true;
+    var count  = 0;
+    var coinssound = null;
+    function raiseMoneyHun(eventData) {
+        if(first){
+            first = false;
+            stage.removeChild(placebetstext);
+            startgamebtn = PIXI.Sprite.fromImage('cardspics/startgamebtn.png');
+            startgamebtn.position.set(600,230);
+            startgamebtn.interactive = true;
+            startgamebtn.on('mousedown', startgame);
+            startgamebtn.on('touchstart', startgame);
+            stage.addChild(startgamebtn);
+        }
+        count = count + 100;
+        dealmoney.text="$"+ Math.floor(count);
+        coinssound =PIXI.audioManager.getAudio('chipstack');
+        coinssound.play();
+    }
+
+    function raiseMoneyFif(eventData) {
+        if(first){
+            first = false;
+            stage.removeChild(placebetstext);
+            startgamebtn = PIXI.Sprite.fromImage('cardspics/startgamebtn.png');
+            startgamebtn.position.set(600,230);
+            startgamebtn.interactive = true;
+            startgamebtn.on('mousedown', startgame);
+            startgamebtn.on('touchstart', startgame);
+            stage.addChild(startgamebtn);
+        }
+        count =  count + 50;
+        dealmoney.text="$"+ Math.floor(count);
+        coinssound = PIXI.audioManager.getAudio('chipstack');
+        coinssound.play();
+    }
+
+    var cards= [];
+    var card = null;
+
+    var standonbtn = null;
+
+
+
+    var countx = 480;
+    var county = 120;
+    var rot = 0;
+    var checker = 0;
+    var num = 0;
+    var index=0;
+    var track = null;
+
+
+    var flippedcard = null;
+
+    var deck = null;
+
+    var totalcardcount = 0;
+
+
+    function gothit (eventData) {
+
+        var num = Math.floor(Math.random() * (13)) + 1;
+        var cardnum='';
+        if(num==1){
+            totalcardcount = totalcardcount+11;
+            cardnum = "ace";
+        }else if(num == 11){
+            totalcardcount = totalcardcount+10;
+            cardnum = "jack";
+        }else if(num == 12){
+            totalcardcount = totalcardcount+10;
+            cardnum = "queen";
+        }else if(num == 13){
+            totalcardcount = totalcardcount+10;
+            cardnum = "king";
+        }else{
+            totalcardcount = totalcardcount+num;
+            cardnum = num.toString();
+        }
+
+        scoretext.text = totalcardcount.toString();
+        if(totalcardcount<21){
+            deck.interactive=true;
+        }else if(totalcardcount==21) {
+            dialogbox.text = "BlackJack";
+            deck.interactive=false;
+            standonbtn.interactive = false;
+        }else {
+            deck.interactive=false;
+            dialogbox.text = "You Lose !";
+            standonbtn.interactive = false;
+        }
+
+
+        var type = Math.floor(Math.random() * (4)) + 1;
+        var cardtype='';
+        if(type==1){
+            cardtype = "hearts";
+        }else if(type==2){
+            cardtype = "diamonds"
+        }else if(type==3){
+            cardtype = "spades"
+        }else if(type==4){
+            cardtype = "clubs"
+        }
+
+        card = PIXI.Sprite.fromImage('cardspics/'+cardnum+'_of_'+cardtype+'.png');
+        if(checker==0){
+            county = county+100;
+            countx = 480;
+            rot=0;
+        }else if(checker==1){
+            countx = 580;
+            rot =0.2;
+        }else{
+            countx = 380;
+            county = county + 20;
+            rot = -0.2;
+        }
+
+
+        card.position.set(countx,county);
+        card.scale.x=0.2;
+        card.scale.y=0.2;
+        card.rotation = rot;
+        track = PIXI.audioManager.getAudio('placecard');
+        track.play();
+        cards[index] = card;
+        stage.addChild(cards[index]);
+
+
+        if(checker<2){
+            checker=checker+1;
+        }else{
+            checker=0;
+        }
+        index=index+1;
+    }
+
+    var scoretext = null;
+    var dialogbox = null;
+
+
+    var opponentscore = 0;
+    var oppscoretext = null;
+    var oppdialogbox = null;
+
+
+    function startgame(eventData) {
+        coinone.interactive=false;
+        cointwo.interactive=false;
+        stage.removeChild(startgamebtn);
+
+        flippedcard = PIXI.Sprite.fromImage('cardspics/flippedcard.png');
+        flippedcard.position.set(980, 220);
+        flippedcard.scale.x=0.5;
+        flippedcard.scale.y=0.5;
+        var numop = Math.floor(Math.random() * (13)) + 1;
+        if(numop==1){
+            opponentscore = opponentscore+11;
+        }else if(numop>10){
+            opponentscore = opponentscore+10;
+        }else{
+            opponentscore = opponentscore+numop;
+        }
+
+        deck =PIXI.Sprite.fromImage('cardspics/deck.png');
+        deck.position.set(750,230);
+        deck.scale.x = 0.5;
+        deck.scale.y =0.5;
+        deck.interactive=true;
+        deck.on('mousedown', gothit);
+        deck.on('touchstart', gothit);
+
+        standonbtn = PIXI.Sprite.fromImage('cardspics/stand.png');
+        standonbtn.position.set(770, 390);
+        standonbtn.scale.x = 0.1;
+        standonbtn.scale.y =0.1;
+        standonbtn.interactive=true;
+        standonbtn.on('mousedown',runstarksimulation);
+        standonbtn.on('touchstart',runstarksimulation);
+        stage.addChild(standonbtn);
+
+        scoretext = new PIXI.Text('0', { font: 'Snippet', fill: 'white', align: 'left' });
+        scoretext.position.set(520,100);
+        stage.addChild(scoretext);
+
+
+        dialogbox = new PIXI.Text('', { font: 'Snippet', fill: 'white', align: 'left' });
+        dialogbox.position.set(480,130);
+        stage.addChild(dialogbox);
+
+        oppdialogbox = new PIXI.Text('', { font: 'Snippet', fill: 'white', align: 'left' });
+        oppdialogbox.position.set(1000,130);
+        stage.addChild(oppdialogbox);
+
+        stage.addChild(deck);
+
+
+        gothit();
+        stage.addChild(flippedcard);
+        gothit();
+        flippedcard = PIXI.Sprite.fromImage('cardspics/flippedcard.png');
+        flippedcard.position.set(1080, 220);
+        flippedcard.scale.x=0.5;
+        flippedcard.scale.y=0.5;
+        flippedcard.rotation = 0.2;
+        stage.addChild(flippedcard);
+        var numopp = Math.floor(Math.random() * (13)) + 1;
+        if(numopp==1){
+            opponentscore = opponentscore+11;
+        }else if(numopp>10){
+            opponentscore = opponentscore+10;
+        }else{
+            opponentscore = opponentscore+numopp;
+        }
+        oppscoretext = new PIXI.Text("", { font: 'Snippet', fill: 'white', align: 'left' });
+        oppscoretext.position.set(1000,100);
+        stage.addChild(oppscoretext);
+
+        if(opponentscore==21){
+            oppscoretext.text = opponentscore.toString();
+            oppdialogbox.text= "Blackjack";
+            dialogbox.text = "You Lose !";
+            deck.interactive=false;
+        }else if(opponentscore>21){
+            deck.interactive=false;
+            dialogbox.text= "You Win !";
+            oppdialogbox.text = "You Lose !";
+        }
+
+        if(totalcardcount<21){
+            deck.interactive=true;
+        }else{
+            deck.interactive=false;
+        }
+
+
+
+    }
+
+
+    function runstarksimulation(eventData) {
+        deck.interactive = false;
+        if(opponentscore<17) {
+            var numopp = Math.floor(Math.random() * (13)) + 1;
+            if (numopp == 1) {
+                opponentscore = opponentscore + 11;
+            } else if (numopp > 10) {
+                opponentscore = opponentscore + 10;
+            } else {
+                opponentscore = opponentscore + numopp;
+            }
+            runstarksimulation();
+        }else if(opponentscore < 21 && opponentscore > 17){
+            if(totalcardcount == opponentscore){
+                oppscoretext.text = opponentscore.toString();
+                dialogbox.text = "push";
+                oppdialogbox.text = "push";
+            }else if(totalcardcount > opponentscore){
+                oppscoretext.text = opponentscore.toString();
+                dialogbox.text = "You Win !";
+                oppdialogbox.text = "You Lose !";
+            }else{
+                oppscoretext.text = opponentscore.toString();
+                oppdialogbox.text = "You Win !";
+                dialogbox.text = "You Lose !";
+            }
+        }else if(opponentscore==21){
+            if(totalcardcount == opponentscore){
+                dialogbox.text = "push";
+                oppdialogbox.text = "push";
+            }else{
+                oppdialogbox.text = "BlackJack";
+                dialogbox.text="You Lose !";
+            }
+        }else{
+
+                oppscoretext.text = opponentscore.toString();
+                oppdialogbox.text = "You Lose !";
+                dialogbox.text = "You Win !";
+
+        }
+    }
+
+
+    // start animating
+    animate();
+    function animate() {
+
+
+        // render the root container
+        renderer.render(stage);
+
+        requestAnimationFrame(animate);
+
+    }
+
+</script>
+</body>
+</html>
